@@ -112,9 +112,9 @@ document.addEventListener('DOMContentLoaded', function () {
     yearEl.textContent = new Date().getFullYear();
   }
 
-  // Gráfico de hitos ligado al scroll: el trazo avanza en sincronía con la
-  // posición del usuario dentro de la sección (no solo "ya entró en
-  // pantalla"), y cada hito se resalta cuando el trazo lo alcanza.
+  // Gráfico de hitos: el trazo se dibuja una sola vez al entrar en el
+  // viewport (no sigue el scroll de ida y vuelta), y cada hito se ilumina
+  // en el momento en que el trazo pasa por su posición real sobre la curva.
   inicializarGraficoDeHitos();
 
   // Cursor magnético en los CTAs principales.
@@ -132,65 +132,41 @@ document.addEventListener('DOMContentLoaded', function () {
     var puntos = Array.prototype.slice.call(storyChart.querySelectorAll('.story-chart__point'));
     if (!path || puntos.length === 0) return;
 
+    var DURACION_TRAZO_MS = 2000; // debe coincidir con el "2s" de .story-chart__path en styles.css
+
     // A qué fracción (0-1) del trazo corresponde cada hito, según su
     // posición real sobre la curva -- no una regla de tres por su x, que
-    // con una curva Bézier no avanza a velocidad constante. Se calcula una
-    // sola vez al cargar, con un muestreo del path (barato: 200 puntos).
+    // con una curva Bézier no avanza a velocidad constante. Con eso se fija
+    // el transition-delay de cada punto, para que se ilumine justo cuando
+    // el trazo (una sola pasada, ver .story-chart.is-visible en CSS) llega
+    // a su altura, no todos a la vez ni en cuanto se hace scroll.
     var umbrales = calcularUmbralesPorPosicion(path, puntos);
+    puntos.forEach(function (punto, i) {
+      punto.style.transitionDelay = Math.round(umbrales[i] * DURACION_TRAZO_MS) + 'ms';
+    });
 
-    function fijarProgreso(p) {
-      p = Math.max(0, Math.min(1, p));
-      // pathLength="1" en el SVG normaliza el trazo a longitud 1.
-      path.style.strokeDashoffset = String(1 - p);
-
-      puntos.forEach(function (punto, i) {
-        punto.classList.toggle('is-active', p >= umbrales[i]);
-      });
+    function activar() {
+      storyChart.classList.add('is-visible');
     }
 
     if (prefiereMovimientoReducido()) {
-      fijarProgreso(1);
+      activar();
       return;
     }
 
-    var scrollTicking = false;
-
-    function actualizarProgreso() {
-      var rect = storyChart.getBoundingClientRect();
-      var vh = window.innerHeight;
-      // 0 cuando el bloque empieza a asomar por abajo, 1 cuando ya ha
-      // salido entero por arriba: el trazo avanza mientras se recorre
-      // la sección, no de golpe al entrar.
-      var progreso = (vh - rect.top) / (vh + rect.height);
-      fijarProgreso(progreso);
-      scrollTicking = false;
-    }
-
-    function onScrollChart() {
-      if (!scrollTicking) {
-        window.requestAnimationFrame(actualizarProgreso);
-        scrollTicking = true;
-      }
-    }
-
     if ('IntersectionObserver' in window) {
-      // El listener de scroll solo vive mientras el gráfico anda cerca del
-      // viewport -- fuera de ahí no hay nada que recalcular.
       var chartObserver = new IntersectionObserver(function (entries) {
         entries.forEach(function (entry) {
           if (entry.isIntersecting) {
-            onScrollChart();
-            window.addEventListener('scroll', onScrollChart, { passive: true });
-          } else {
-            window.removeEventListener('scroll', onScrollChart);
+            activar();
+            chartObserver.unobserve(storyChart);
           }
         });
-      }, { rootMargin: '200px 0px 200px 0px' });
+      }, { threshold: 0.4 });
 
       chartObserver.observe(storyChart);
     } else {
-      window.addEventListener('scroll', onScrollChart, { passive: true });
-      onScrollChart();
+      activar();
     }
   }
 

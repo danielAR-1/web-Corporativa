@@ -649,6 +649,64 @@ img {
 }
 
 /* ==========================================================================
+   Casos (ejemplos ilustrativos)
+   ========================================================================== */
+.cases-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+@media (min-width: 768px) {
+  .cases-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.case-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  cursor: default;
+  user-select: none;
+}
+
+.case-card h3 {
+  font-size: 1.05rem;
+  color: var(--text);
+  font-weight: 700;
+  margin: 0 0 12px;
+}
+
+.case-card__tag {
+  display: inline-block;
+  color: var(--accent);
+  background: rgba(255, 107, 26, 0.1);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  margin: 0 0 12px;
+}
+
+.case-card__row {
+  font-size: 0.9rem;
+  margin: 0 0 10px;
+}
+
+.case-card__row:last-child {
+  margin-bottom: 0;
+}
+
+.case-card__row strong {
+  color: var(--text);
+}
+
+/* ==========================================================================
    Story chart
    ========================================================================== */
 .story-chart {
@@ -667,10 +725,11 @@ img {
   stroke-linecap: round;
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
-  /* Sin transition: script.js escribe stroke-dashoffset directamente en
-     cada frame de scroll (ver actualizarProgresoHitos). Si CSS también
-     intentara transicionarlo, iría siempre a remolque del scroll en vez
-     de seguirlo al milímetro. */
+  transition: stroke-dashoffset 2s var(--ease-decel);
+}
+
+.story-chart.is-visible .story-chart__path {
+  stroke-dashoffset: 0;
 }
 
 .story-chart__point {
@@ -682,13 +741,15 @@ img {
      propio centro -- con fill-box, scale() gira sobre sí mismo. */
   transform-box: fill-box;
   transform-origin: center;
-  transition: opacity 0.25s var(--ease-decel), transform 0.25s var(--ease-decel), fill 0.25s var(--ease-decel);
+  /* transition-delay lo fija script.js por punto, proporcional a su
+     posición real sobre el trazo (ver calcularUmbralesPorPosicion), para
+     que cada hito se ilumine justo cuando el trazo (2s) pasa por ahí. */
+  transition: opacity 0.3s var(--ease-decel), transform 0.3s var(--ease-decel), fill 0.3s var(--ease-decel);
 }
 
-/* Se resalta cuando el trazo lo alcanza (ver script.js), no de golpe con
-   el resto: aquí sí hay transición porque es un cambio de estado puntual
-   al cruzar el umbral, no algo que deba seguir el scroll al milímetro. */
-.story-chart__point.is-active {
+/* Dispara una sola vez al entrar en el viewport (ver script.js) -- ya no
+   sigue el scroll de vuelta y hacia delante. */
+.story-chart.is-visible .story-chart__point {
   opacity: 1;
   fill: var(--accent);
   transform: scale(1.35);
@@ -884,10 +945,10 @@ img {
 
 /* ==========================================================================
    Movimiento reducido — solo lo ambiental/automático (entrada del hero,
-   gradiente en bucle, trazo del gráfico ligado al scroll, cursor
-   magnético). Los hovers de tarjetas/botones/FAQ y el header al hacer
-   scroll se dejan: son feedback breve a una acción del usuario, no
-   movimiento continuo ni disparado solo.
+   gradiente en bucle, dibujado del gráfico de hitos, cursor magnético).
+   Los hovers de tarjetas/botones/FAQ y el header al hacer scroll se dejan:
+   son feedback breve a una acción del usuario, no movimiento continuo ni
+   disparado solo.
 
    El cursor magnético no necesita nada aquí: script.js comprueba
    prefers-reduced-motion antes de arrancar y, si está activo, no llega a
@@ -907,6 +968,7 @@ img {
     animation: none !important;
   }
 
+  .story-chart__path,
   .story-chart__point {
     transition: none !important;
   }
