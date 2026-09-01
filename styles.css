@@ -16,6 +16,10 @@
 
   --section-spacing: 64px;
   --font: "Manrope", "Segoe UI", sans-serif;
+
+  /* Easing propio para que el movimiento se sienta deliberado, no el
+     ease-in-out por defecto del navegador. Decelera fuerte al final. */
+  --ease-decel: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @media (min-width: 900px) {
@@ -122,19 +126,24 @@ img {
   border-radius: var(--radius-sm);
   border: 1px solid transparent;
   cursor: pointer;
-  transition: transform 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.15s var(--ease-decel), background-color 0.15s var(--ease-decel), border-color 0.15s var(--ease-decel), box-shadow 0.15s var(--ease-decel);
   white-space: nowrap;
 }
 
 .btn--primary {
   background: var(--accent);
   color: #0D1321;
+  /* --magnet-x/--magnet-y los actualiza script.js en los 3 CTAs principales
+     (cursor magnético, ver inicializarBotonesMagneticos). El transform vive
+     aquí, no en un style.transform inline, para poder sumarle el scale()
+     del hover sin que se pisen entre sí. */
+  transform: translate(var(--magnet-x, 0px), var(--magnet-y, 0px));
 }
 
 .btn--primary:hover {
   background: var(--accent-hover);
-  transform: scale(1.03);
-  box-shadow: 0 0 0 4px rgba(255, 107, 26, 0.18);
+  transform: translate(var(--magnet-x, 0px), var(--magnet-y, 0px)) scale(1.02);
+  box-shadow: 0 0 0 4px rgba(255, 107, 26, 0.18), 0 6px 20px rgba(255, 107, 26, 0.25);
 }
 
 .btn--outline {
@@ -146,6 +155,18 @@ img {
 .btn--outline:hover {
   border-color: var(--accent);
   color: var(--accent);
+  transform: scale(1.02);
+  box-shadow: 0 0 0 4px rgba(255, 107, 26, 0.1);
+}
+
+/* Los 3 CTAs con cursor magnético actualizan --magnet-x/y en cada frame
+   (ver script.js): la transición de "transform" de .btn se quita solo para
+   ellos, si no cada frame dispararía una transición de 150ms detrás de
+   otra y el seguimiento del cursor se notaría con retraso. El propio JS ya
+   hace su suavizado (más lento al volver al reposo, para el efecto
+   elástico), así que no hace falta que CSS anime esto también. */
+.btn--magnetic {
+  transition: background-color 0.15s var(--ease-decel), border-color 0.15s var(--ease-decel), box-shadow 0.15s var(--ease-decel);
 }
 
 .btn--lg {
@@ -163,9 +184,28 @@ img {
   right: 0;
   z-index: 100;
   background: rgba(13, 19, 33, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border);
+  /* "Liquid glass": sombra interior sutil, como si la luz entrara por el
+     borde de un cristal. */
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition: backdrop-filter 0.3s var(--ease-decel), box-shadow 0.3s var(--ease-decel);
+}
+
+/* Línea de "refracción" en el borde superior: un degradado que se atenúa
+   hacia los lados, como el brillo que deja la luz en el canto de un
+   cristal. Pseudo-elemento aparte (no border-image) para no pelearse con
+   el border-bottom existente. */
+.site-header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  pointer-events: none;
 }
 
 .site-header__inner {
@@ -173,6 +213,19 @@ img {
   align-items: center;
   justify-content: space-between;
   height: 72px;
+  transition: height 0.3s var(--ease-decel);
+}
+
+/* Pasados ~80px de scroll (ver script.js): cabecera más compacta, más
+   blur y una sombra que la separa del contenido que pasa por debajo. */
+.site-header--scrolled {
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.site-header--scrolled .site-header__inner {
+  height: 56px;
 }
 
 .logo {
@@ -311,20 +364,97 @@ img {
    Hero
    ========================================================================== */
 .hero {
+  position: relative;
+  overflow: hidden;
   padding: 160px 0 var(--section-spacing);
 }
 
+/* Fondo con vida: gradiente radial muy atenuado que deriva despacio en
+   bucle. Se anima solo "transform" sobre una capa de sobra (inset:-25%)
+   para que el navegador la resuelva en la GPU sin repintar -- barato
+   incluso en móviles de gama baja. */
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: -25%;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255, 107, 26, 0.16), transparent 55%),
+    radial-gradient(circle at 75% 70%, rgba(255, 107, 26, 0.1), transparent 60%);
+  animation: heroGlowDrift 18s ease-in-out infinite alternate;
+  pointer-events: none;
+  z-index: 0;
+}
+
 .hero__inner {
+  position: relative;
+  z-index: 1;
   max-width: 780px;
+}
+
+@keyframes heroGlowDrift {
+  0% {
+    transform: translate3d(-2%, -1%, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(2%, 2%, 0) scale(1.05);
+  }
+  100% {
+    transform: translate3d(-1%, 2%, 0) scale(1);
+  }
 }
 
 .hero h1 {
   font-size: clamp(2.1rem, 5.5vw, 3.5rem);
 }
 
+/* Palabras del titular, envueltas en <span class="hero-word"> por script.js
+   (el HTML fuente no se toca: si JS no corre, el h1 se queda como texto
+   normal y visible, sin nada que revelar). */
+.hero-word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(14px);
+  animation: heroWordIn 0.42s var(--ease-decel) both;
+}
+
+.hero-word--highlight {
+  animation-name: heroWordIn, heroHighlightPop;
+  animation-timing-function: var(--ease-decel), var(--ease-decel);
+  animation-fill-mode: both, both;
+  animation-duration: 0.42s, 0.3s;
+}
+
+@keyframes heroWordIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Pequeño énfasis extra en naranja justo al terminar de aparecer. */
+@keyframes heroHighlightPop {
+  0% {
+    transform: translateY(0) scale(1);
+    text-shadow: 0 0 0 rgba(255, 107, 26, 0);
+  }
+  50% {
+    transform: translateY(0) scale(1.1);
+    text-shadow: 0 0 18px rgba(255, 107, 26, 0.55);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    text-shadow: 0 0 0 rgba(255, 107, 26, 0);
+  }
+}
+
 .hero__subtitle {
   font-size: 1.15rem;
   max-width: 560px;
+  animation: heroFadeUp 0.42s var(--ease-decel) 0.42s both;
 }
 
 .hero__actions {
@@ -332,6 +462,18 @@ img {
   flex-wrap: wrap;
   gap: 16px;
   margin-top: 32px;
+  animation: heroFadeUp 0.42s var(--ease-decel) 0.56s both;
+}
+
+@keyframes heroFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ==========================================================================
@@ -339,6 +481,9 @@ img {
    ========================================================================== */
 .section {
   padding: var(--section-spacing) 0;
+  /* Offset para que el header fijo (72px, 56px con .site-header--scrolled)
+     no tape el título al llegar por un enlace de ancla con scroll suave. */
+  scroll-margin-top: 88px;
 }
 
 .section--alt {
@@ -384,11 +529,17 @@ img {
   border-radius: var(--radius);
   padding: 28px 24px;
   box-shadow: var(--shadow-sm);
-  transition: border-color 0.15s ease;
+  transition: transform 0.22s var(--ease-decel), box-shadow 0.22s var(--ease-decel), border-color 0.22s var(--ease-decel);
+  /* No son campos de texto: al pasar el cursor por encima no debe verse el
+     cursor de "seleccionar texto" ni poder arrastrar para copiar. */
+  cursor: default;
+  user-select: none;
 }
 
 .card:hover {
   border-color: var(--accent);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(255, 107, 26, 0.15), 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
 .card h3 {
@@ -419,15 +570,35 @@ img {
 }
 
 .demo-shot {
+  position: relative;
+  overflow: hidden;
   aspect-ratio: 9 / 16;
   border-radius: var(--radius);
   border: 1px dashed var(--border);
-  background: var(--bg);
+  /* Mismo tratamiento "liquid glass" que el header, para que el bloque de
+     demo destaque como lo más premium de la página. El borde discontinuo
+     se mantiene: sigue señalando "esto es un hueco para una captura real"
+     (ver el TODO del HTML), el cristal es capa aparte. */
+  background: rgba(22, 29, 46, 0.5);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 24px rgba(0, 0, 0, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
   padding: 20px;
+}
+
+.demo-shot::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  pointer-events: none;
 }
 
 .demo-shot__label {
@@ -496,23 +667,31 @@ img {
   stroke-linecap: round;
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
-  transition: stroke-dashoffset 1.4s ease;
-}
-
-.story-chart.is-visible .story-chart__path {
-  stroke-dashoffset: 0;
+  /* Sin transition: script.js escribe stroke-dashoffset directamente en
+     cada frame de scroll (ver actualizarProgresoHitos). Si CSS también
+     intentara transicionarlo, iría siempre a remolque del scroll en vez
+     de seguirlo al milímetro. */
 }
 
 .story-chart__point {
   fill: var(--bg);
   stroke: var(--accent);
   stroke-width: 3;
-  opacity: 0;
-  transition: opacity 0.3s ease 1.1s;
+  opacity: 0.35;
+  /* El <circle> por defecto escala desde el origen del SVG, no desde su
+     propio centro -- con fill-box, scale() gira sobre sí mismo. */
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: opacity 0.25s var(--ease-decel), transform 0.25s var(--ease-decel), fill 0.25s var(--ease-decel);
 }
 
-.story-chart.is-visible .story-chart__point {
+/* Se resalta cuando el trazo lo alcanza (ver script.js), no de golpe con
+   el resto: aquí sí hay transición porque es un cambio de estado puntual
+   al cruzar el umbral, no algo que deba seguir el scroll al milímetro. */
+.story-chart__point.is-active {
   opacity: 1;
+  fill: var(--accent);
+  transform: scale(1.35);
 }
 
 .story-milestones {
@@ -569,7 +748,7 @@ img {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  background: none;
+  background-color: transparent;
   border: none;
   padding: 20px 0;
   font-family: var(--font);
@@ -578,6 +757,12 @@ img {
   color: var(--text);
   text-align: left;
   cursor: pointer;
+  transition: background-color 0.2s var(--ease-decel);
+}
+
+/* Señal sutil de que es interactivo antes de hacer clic. */
+.accordion__trigger:hover {
+  background-color: rgba(255, 255, 255, 0.03);
 }
 
 .accordion__icon {
@@ -585,6 +770,7 @@ img {
   flex-shrink: 0;
   width: 18px;
   height: 18px;
+  transition: transform 0.3s var(--ease-decel);
 }
 
 .accordion__icon::before,
@@ -605,17 +791,16 @@ img {
 .accordion__icon::after {
   width: 2px;
   height: 100%;
-  transition: transform 0.2s ease;
 }
 
-.accordion__trigger[aria-expanded="true"] .accordion__icon::after {
-  transform: translate(-50%, -50%) rotate(90deg) scale(0);
+.accordion__trigger[aria-expanded="true"] .accordion__icon {
+  transform: rotate(45deg);
 }
 
 .accordion__panel {
   max-height: 0;
   overflow: hidden;
-  transition: max-height 0.25s ease;
+  transition: max-height 0.3s var(--ease-decel);
 }
 
 .accordion__panel p {
@@ -695,4 +880,34 @@ img {
   margin: 0;
   font-size: 0.85rem;
   color: var(--text-secondary);
+}
+
+/* ==========================================================================
+   Movimiento reducido — solo lo ambiental/automático (entrada del hero,
+   gradiente en bucle, trazo del gráfico ligado al scroll, cursor
+   magnético). Los hovers de tarjetas/botones/FAQ y el header al hacer
+   scroll se dejan: son feedback breve a una acción del usuario, no
+   movimiento continuo ni disparado solo.
+
+   El cursor magnético no necesita nada aquí: script.js comprueba
+   prefers-reduced-motion antes de arrancar y, si está activo, no llega a
+   escribir --magnet-x/--magnet-y, así que el transform de .btn--primary
+   se queda en su valor por defecto (0px) sin más.
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .hero-word,
+  .hero__subtitle,
+  .hero__actions {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .hero::before {
+    animation: none !important;
+  }
+
+  .story-chart__point {
+    transition: none !important;
+  }
 }
