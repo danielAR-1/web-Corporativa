@@ -82,6 +82,10 @@ img {
   max-width: 760px;
 }
 
+.container--wide {
+  max-width: 1320px;
+}
+
 .skip-link {
   position: absolute;
   left: -999px;
@@ -614,6 +618,103 @@ img {
   max-width: 480px;
   margin-left: auto;
   margin-right: auto;
+}
+
+/* ==========================================================================
+   Panel de administración (bento)
+   ========================================================================== */
+.admin-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+@media (min-width: 640px) {
+  .admin-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .admin-grid {
+    /* 3 columnas (no 4, como el resto de grids del sitio): con capturas de
+       panel llenas de texto y datos, cada tarjeta necesita más ancho para
+       leerse bien. */
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Las 3 tarjetas más impactantes (resumen, estadísticas, ocupación) ocupan
+   el doble de ancho que el resto, para el efecto mosaico/bento. */
+.admin-card--lg {
+  grid-column: span 2;
+}
+
+.admin-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.22s var(--ease-decel), box-shadow 0.22s var(--ease-decel), border-color 0.22s var(--ease-decel);
+  cursor: default;
+  user-select: none;
+}
+
+.admin-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(255, 107, 26, 0.15), 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* Marco "ventana de navegador": barra superior simulada con 3 puntos de
+   color estilo macOS, para que cada captura del panel se lea como una app
+   real y no como una imagen suelta. */
+.admin-card__bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.admin-card__bar span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--border);
+}
+
+.admin-card__bar span:nth-child(1) { background: #FF5F57; }
+.admin-card__bar span:nth-child(2) { background: #FEBC2E; }
+.admin-card__bar span:nth-child(3) { background: #28C840; }
+
+/* Sin recorte forzado: las capturas del panel varían mucho de proporción
+   (de 1.4:1 a 2.4:1) y varias llevan datos hasta el borde -- un aspect-ratio
+   fijo con object-fit:cover cortaría contenido real. Se muestran completas. */
+.admin-card__img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.admin-card__body {
+  padding: 20px 24px;
+}
+
+.admin-card__body h3 {
+  font-size: 1.05rem;
+  color: var(--text);
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+
+.admin-card__body p {
+  margin: 0;
+  font-size: 0.95rem;
 }
 
 /* ==========================================================================
