@@ -123,6 +123,9 @@ document.addEventListener('DOMContentLoaded', function () {
   // Lightbox para ampliar las capturas del panel admin con zoom in.
   inicializarLightboxPanelAdmin();
 
+  // Fondo de partículas flotando en "Somos reales".
+  inicializarParticulasFondo();
+
   function prefiereMovimientoReducido() {
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
@@ -386,6 +389,156 @@ document.addEventListener('DOMContentLoaded', function () {
         if (e.target === dialog) cerrar();
       });
     }
+  }
+
+  // Fondo de partículas en "Somos reales": puntos flotando muy despacio,
+  // tipo estrellas, detrás del texto y del gráfico de hitos. Canvas nativo,
+  // sin librerías -- ver .particles-canvas / #nosotros en styles.css para
+  // el posicionamiento (el canvas es solo el fondo, el contenido real va
+  // encima con z-index).
+  function inicializarParticulasFondo() {
+    var canvas = document.getElementById('particlesCanvas');
+    var seccion = document.getElementById('nosotros');
+    if (!canvas || !seccion) return;
+
+    var ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    var BLANCO = '255, 255, 255';
+    var NARANJA = '255, 107, 26'; // debe coincidir con --accent en styles.css
+    var DPR = Math.min(window.devicePixelRatio || 1, 2); // cap: en móviles de DPR alto no merece la pena más resolución de la que se aprecia
+
+    var particulas = [];
+    var anchoCss = 0;
+    var altoCss = 0;
+    var rafId = null;
+    var enViewport = false;
+    var resizeTimeout = null;
+
+    function numeroDeParticulasPara(ancho) {
+      // Menos partículas en pantallas pequeñas: es donde más pesa cada
+      // punto extra sobre la CPU/GPU y donde menos se aprecia el detalle.
+      if (ancho < 640) return 35;
+      if (ancho < 1024) return 70;
+      return 90;
+    }
+
+    function crearParticula() {
+      var esNaranja = Math.random() < 0.2; // ~80/20 blanco/naranja
+      return {
+        x: Math.random() * anchoCss,
+        y: Math.random() * altoCss,
+        radio: 0.5 + Math.random(), // 0.5-1.5px
+        vx: (Math.random() - 0.5) * 0.1, // muy lenta: "flotar", no desplazarse
+        vy: (Math.random() - 0.5) * 0.1,
+        opacidad: 0.2 + Math.random() * 0.4, // 0.2-0.6
+        color: esNaranja ? NARANJA : BLANCO
+      };
+    }
+
+    function generarParticulas() {
+      var cuantas = numeroDeParticulasPara(anchoCss);
+      particulas = [];
+      for (var i = 0; i < cuantas; i++) {
+        particulas.push(crearParticula());
+      }
+    }
+
+    function ajustarTamano() {
+      anchoCss = seccion.clientWidth;
+      altoCss = seccion.clientHeight;
+
+      canvas.width = Math.round(anchoCss * DPR);
+      canvas.height = Math.round(altoCss * DPR);
+      canvas.style.width = anchoCss + 'px';
+      canvas.style.height = altoCss + 'px';
+
+      // Con el canvas ya escalado a píxeles de dispositivo, este scale()
+      // hace que el resto del código dibuje en coordenadas CSS normales.
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+      generarParticulas();
+    }
+
+    function dibujarFrame() {
+      ctx.clearRect(0, 0, anchoCss, altoCss);
+      particulas.forEach(function (p) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radio, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(' + p.color + ', ' + p.opacidad + ')';
+        ctx.fill();
+      });
+    }
+
+    function actualizarParticulas() {
+      particulas.forEach(function (p) {
+        p.x += p.vx;
+        p.y += p.vy;
+
+        // Wrap-around: reaparece por el lado opuesto, sin rebotar.
+        if (p.x < -p.radio) p.x = anchoCss + p.radio;
+        else if (p.x > anchoCss + p.radio) p.x = -p.radio;
+
+        if (p.y < -p.radio) p.y = altoCss + p.radio;
+        else if (p.y > altoCss + p.radio) p.y = -p.radio;
+      });
+    }
+
+    function tick() {
+      actualizarParticulas();
+      dibujarFrame();
+      rafId = window.requestAnimationFrame(tick);
+    }
+
+    function iniciarAnimacion() {
+      if (rafId !== null || prefiereMovimientoReducido()) return;
+      rafId = window.requestAnimationFrame(tick);
+    }
+
+    function detenerAnimacion() {
+      if (rafId === null) return;
+      window.cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+
+    ajustarTamano();
+
+    if (prefiereMovimientoReducido()) {
+      // Ni una partícula en movimiento: se dibujan una vez, quietas, en
+      // vez de quitarlas del todo -- se mantiene la estética sin animar.
+      dibujarFrame();
+    } else {
+      dibujarFrame();
+
+      if ('IntersectionObserver' in window) {
+        var observadorSeccion = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            enViewport = entry.isIntersecting;
+            if (enViewport) {
+              iniciarAnimacion();
+            } else {
+              detenerAnimacion();
+            }
+          });
+        }, { threshold: 0 });
+
+        observadorSeccion.observe(seccion);
+      } else {
+        // Sin soporte de IntersectionObserver: se anima siempre, sin pausa
+        // fuera de viewport.
+        iniciarAnimacion();
+      }
+    }
+
+    // Debounce: un resize real solo se procesa 200ms después del último
+    // evento, para no recalcular tamaño/partículas en cada píxel arrastrado.
+    window.addEventListener('resize', function () {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(function () {
+        ajustarTamano();
+        dibujarFrame();
+      }, 200);
+    });
   }
 
 });

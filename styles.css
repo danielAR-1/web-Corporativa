@@ -881,6 +881,32 @@ img {
 }
 
 /* ==========================================================================
+   Partículas de fondo ("Somos reales" -- ver inicializarParticulasFondo en
+   script.js). #nosotros pasa a ser el contenedor posicionado del canvas;
+   overflow:hidden lo recorta a los límites de la sección en vez de que
+   flote sobre el resto de la página.
+   ========================================================================== */
+#nosotros {
+  position: relative;
+  overflow: hidden;
+}
+
+#nosotros > .container {
+  position: relative;
+  z-index: 1;
+}
+
+.particles-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  /* Puramente decorativo, detrás del contenido: no debe robarle clics a
+     nada (founders, enlaces, etc. si algún día los hay en esta sección). */
+  pointer-events: none;
+}
+
+/* ==========================================================================
    Founders
    ========================================================================== */
 .founders {
