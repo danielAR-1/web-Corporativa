@@ -440,10 +440,10 @@ document.addEventListener('DOMContentLoaded', function () {
       return {
         x: Math.random() * anchoCss,
         y: Math.random() * altoCss,
-        radio: 1 + Math.random() * 1.5, // 1-2.5px -- más grandes que antes, se ven mejor
+        radio: 1.5 + Math.random() * 2, // 1.5-3.5px -- todavía más grandes
         vx: (Math.random() - 0.5) * 0.6, // lenta pero con movimiento perceptible -- "flotar", no desplazarse
         vy: (Math.random() - 0.5) * 0.6,
-        opacidad: 0.4 + Math.random() * 0.45, // 0.4-0.85 -- más visibles que antes
+        opacidad: 0.55 + Math.random() * 0.4, // 0.55-0.95 -- todavía más visibles
         color: esNaranja ? NARANJA : BLANCO
       };
     }
