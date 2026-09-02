@@ -367,6 +367,12 @@ img {
   position: relative;
   overflow: hidden;
   padding: 160px 0 var(--section-spacing);
+  /* Sin la clase .section, no hereda su rgba -- sin esto, el hero dejaría
+     pasar las partículas al 100% (no tenía fondo propio) y competirían
+     con su propio degradado radial. Una atenuación ligera (más opaca que
+     el resto de secciones) deja que ese degradado siga siendo el efecto
+     dominante aquí, con las partículas solo como textura de fondo. */
+  background: rgba(13, 19, 33, 0.92);
 }
 
 /* Fondo con vida: gradiente radial muy atenuado que deriva despacio en
@@ -484,10 +490,16 @@ img {
   /* Offset para que el header fijo (72px, 56px con .site-header--scrolled)
      no tape el título al llegar por un enlace de ancla con scroll suave. */
   scroll-margin-top: 88px;
+  /* Semitransparente a propósito: deja que las partículas de fondo (fixed,
+     detrás de toda la página) se transparenten un poco en vez de quedar
+     tapadas por un fondo sólido. El hero no lleva esta clase -- tiene su
+     propia atenuación, algo más opaca, para no competir con su degradado
+     animado (ver .hero). */
+  background: rgba(13, 19, 33, 0.85);
 }
 
 .section--alt {
-  background: var(--surface);
+  background: rgba(22, 29, 46, 0.82);
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
 }
@@ -524,11 +536,16 @@ img {
 }
 
 .card {
-  background: var(--surface);
+  /* Mismo "liquid glass" que el header: fondo translúcido + blur, para que
+     las partículas de fondo se noten ligeramente incluso detrás de la
+     tarjeta, en vez de quedar del todo tapadas por un fondo sólido. */
+  background: rgba(22, 29, 46, 0.65);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 28px 24px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), var(--shadow-sm);
   transition: transform 0.22s var(--ease-decel), box-shadow 0.22s var(--ease-decel), border-color 0.22s var(--ease-decel);
   /* No son campos de texto: al pasar el cursor por encima no debe verse el
      cursor de "seleccionar texto" ni poder arrastrar para copiar. */
@@ -539,7 +556,7 @@ img {
 .card:hover {
   border-color: var(--accent);
   transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(255, 107, 26, 0.15), 0 4px 16px rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 12px 32px rgba(255, 107, 26, 0.15), 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
 .card h3 {
@@ -651,11 +668,16 @@ img {
 .admin-card {
   display: flex;
   flex-direction: column;
-  background: var(--surface);
+  /* Mismo tratamiento glass que .card: la captura de dentro (opaca, ver
+     .admin-card__img) no se ve afectada -- solo el fondo de la tarjeta se
+     transparenta un poco para dejar asomar las partículas. */
+  background: rgba(22, 29, 46, 0.65);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), var(--shadow-sm);
   transition: transform 0.22s var(--ease-decel), box-shadow 0.22s var(--ease-decel), border-color 0.22s var(--ease-decel);
   cursor: default;
   user-select: none;
@@ -664,7 +686,7 @@ img {
 .admin-card:hover {
   border-color: var(--accent);
   transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(255, 107, 26, 0.15), 0 4px 16px rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 12px 32px rgba(255, 107, 26, 0.15), 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
 /* Marco "ventana de navegador": barra superior simulada con 3 puntos de
@@ -881,28 +903,23 @@ img {
 }
 
 /* ==========================================================================
-   Partículas de fondo ("Somos reales" -- ver inicializarParticulasFondo en
-   script.js). #nosotros pasa a ser el contenedor posicionado del canvas;
-   overflow:hidden lo recorta a los límites de la sección en vez de que
-   flote sobre el resto de la página.
+   Partículas de fondo -- global y fija detrás de TODA la página (ver
+   inicializarParticulasFondo en script.js), no solo de una sección.
    ========================================================================== */
-#nosotros {
-  position: relative;
-  overflow: hidden;
-}
-
-#nosotros > .container {
-  position: relative;
-  z-index: 1;
-}
-
 .particles-canvas {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  /* Fuera del flujo normal y sin crear su propio contexto de apilamiento
+     por encima de nada: al ser hijo directo de <body> (que no declara
+     background en <html>, así que --bg actúa como fondo del viewport,
+     pintado por debajo de todo) queda entre ese fondo y el contenido de
+     cada sección, que sí es positivo/normal y pinta por encima. */
+  z-index: -1;
   display: block;
-  /* Puramente decorativo, detrás del contenido: no debe robarle clics a
-     nada (founders, enlaces, etc. si algún día los hay en esta sección). */
+  /* Puramente decorativo: no debe robarle clics a nada de la página. */
   pointer-events: none;
 }
 

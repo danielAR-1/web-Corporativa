@@ -391,15 +391,13 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  // Fondo de partículas en "Somos reales": puntos flotando muy despacio,
-  // tipo estrellas, detrás del texto y del gráfico de hitos. Canvas nativo,
-  // sin librerías -- ver .particles-canvas / #nosotros en styles.css para
-  // el posicionamiento (el canvas es solo el fondo, el contenido real va
-  // encima con z-index).
+  // Fondo de partículas global: puntos flotando muy despacio, tipo
+  // estrellas, fijos detrás de toda la página (no solo de una sección).
+  // Canvas nativo, sin librerías -- ver .particles-canvas en styles.css
+  // para el posicionamiento (position:fixed, z-index:-1).
   function inicializarParticulasFondo() {
     var canvas = document.getElementById('particlesCanvas');
-    var seccion = document.getElementById('nosotros');
-    if (!canvas || !seccion) return;
+    if (!canvas) return;
 
     var ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -412,15 +410,19 @@ document.addEventListener('DOMContentLoaded', function () {
     var anchoCss = 0;
     var altoCss = 0;
     var rafId = null;
-    var enViewport = false;
     var resizeTimeout = null;
 
-    function numeroDeParticulasPara(ancho) {
-      // Menos partículas en pantallas pequeñas: es donde más pesa cada
-      // punto extra sobre la CPU/GPU y donde menos se aprecia el detalle.
-      if (ancho < 640) return 35;
-      if (ancho < 1024) return 70;
-      return 90;
+    function numeroDeParticulasPara(ancho, alto) {
+      // Densidad relativa al área visible, no un número fijo: antes se
+      // calculaba sobre el alto de la sección "Somos reales" (varias
+      // pantallas de contenido); ahora el canvas solo cubre un viewport
+      // (fixed), así que la densidad está calibrada para que un viewport
+      // de escritorio típico (~1440x900) siga dando ~90 partículas, la
+      // misma sensación visual que había antes.
+      var area = ancho * alto;
+      var densidad = ancho < 640 ? (1 / 16000) : ancho < 1024 ? (1 / 15000) : (1 / 14000);
+      var cantidad = Math.round(area * densidad);
+      return Math.max(18, Math.min(cantidad, 110)); // límites: nunca demasiado vacío ni demasiado cargado (pantallas muy grandes)
     }
 
     function crearParticula() {
@@ -437,7 +439,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function generarParticulas() {
-      var cuantas = numeroDeParticulasPara(anchoCss);
+      var cuantas = numeroDeParticulasPara(anchoCss, altoCss);
       particulas = [];
       for (var i = 0; i < cuantas; i++) {
         particulas.push(crearParticula());
@@ -445,8 +447,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function ajustarTamano() {
-      anchoCss = seccion.clientWidth;
-      altoCss = seccion.clientHeight;
+      // El canvas cubre el viewport (fixed), no la página entera: no hace
+      // falta medir scrollHeight, con innerWidth/innerHeight sobra.
+      anchoCss = window.innerWidth;
+      altoCss = window.innerHeight;
 
       canvas.width = Math.round(anchoCss * DPR);
       canvas.height = Math.round(altoCss * DPR);
@@ -491,7 +495,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function iniciarAnimacion() {
-      if (rafId !== null || prefiereMovimientoReducido()) return;
+      if (rafId !== null || prefiereMovimientoReducido() || document.hidden) return;
       rafId = window.requestAnimationFrame(tick);
     }
 
@@ -502,32 +506,27 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     ajustarTamano();
+    dibujarFrame();
 
     if (prefiereMovimientoReducido()) {
       // Ni una partícula en movimiento: se dibujan una vez, quietas, en
       // vez de quitarlas del todo -- se mantiene la estética sin animar.
-      dibujarFrame();
+      // No hace falta pausar/reanudar nada porque nunca llega a animarse.
     } else {
-      dibujarFrame();
+      iniciarAnimacion();
 
-      if ('IntersectionObserver' in window) {
-        var observadorSeccion = new IntersectionObserver(function (entries) {
-          entries.forEach(function (entry) {
-            enViewport = entry.isIntersecting;
-            if (enViewport) {
-              iniciarAnimacion();
-            } else {
-              detenerAnimacion();
-            }
-          });
-        }, { threshold: 0 });
-
-        observadorSeccion.observe(seccion);
-      } else {
-        // Sin soporte de IntersectionObserver: se anima siempre, sin pausa
-        // fuera de viewport.
-        iniciarAnimacion();
-      }
+      // Antes esto lo decidía un IntersectionObserver sobre la sección
+      // "Somos reales" (se pausaba al salir del viewport por scroll). Con
+      // el canvas cubriendo toda la ventana (fixed) siempre está "a la
+      // vista" mientras la pestaña lo esté, así que el criterio pasa a
+      // ser la visibilidad de la propia pestaña.
+      document.addEventListener('visibilitychange', function () {
+        if (document.hidden) {
+          detenerAnimacion();
+        } else {
+          iniciarAnimacion();
+        }
+      });
     }
 
     // Debounce: un resize real solo se procesa 200ms después del último

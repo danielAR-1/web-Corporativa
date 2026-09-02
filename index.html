@@ -28,6 +28,11 @@
 </head>
 <body>
 
+  <!-- Fondo de partículas global, fijo detrás de toda la página (ver
+       inicializarParticulasFondo en script.js y .particles-canvas en
+       styles.css). aria-hidden porque es puramente decorativo. -->
+  <canvas class="particles-canvas" id="particlesCanvas" aria-hidden="true"></canvas>
+
   <a class="skip-link" href="#contenido">Saltar al contenido</a>
 
   <header class="site-header">
@@ -286,7 +291,6 @@
 
     <!-- SOMOS REALES -->
     <section id="nosotros" class="section">
-      <canvas class="particles-canvas" id="particlesCanvas" aria-hidden="true"></canvas>
       <div class="container container--narrow">
         <p class="eyebrow">Somos reales</p>
         <h2 class="section__title">Dos personas, un <span class="highlight">problema</span> que conocemos bien</h2>
