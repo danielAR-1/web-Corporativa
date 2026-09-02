@@ -1295,7 +1295,11 @@ html.js .reveal {
   transition: opacity 0.65s var(--ease-decel), transform 0.65s var(--ease-decel);
 }
 
-.reveal.is-visible {
+/* Con el mismo prefijo "html.js" que la regla de arriba: si no, "html.js
+   .reveal" (specificity 0,2,1) le gana a ".reveal.is-visible" (0,2,0) por
+   incluir el selector de elemento "html", y is-visible nunca llegaría a
+   aplicarse -- el contenido se quedaría invisible para siempre. */
+html.js .reveal.is-visible {
   opacity: 1;
   transform: translateY(0);
 }
