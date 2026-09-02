@@ -313,6 +313,23 @@
         <!-- Gráfico de progreso: hitos reales del proyecto, sin inflar cifras -->
         <div class="story-chart" id="storyChart">
           <svg class="story-chart__svg" viewBox="0 0 480 220" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="storyChartFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#FF6B1A" stop-opacity="0.32"/>
+                <stop offset="100%" stop-color="#FF6B1A" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+
+            <!-- Cuadrícula y eje base: lo que separa "una curva suelta" de una
+                 gráfica de verdad, sin llegar a ejes con cifras que no tenemos. -->
+            <g class="story-chart__grid">
+              <line class="story-chart__grid-line" x1="0" y1="40" x2="480" y2="40"/>
+              <line class="story-chart__grid-line" x1="0" y1="100" x2="480" y2="100"/>
+              <line class="story-chart__grid-line" x1="0" y1="160" x2="480" y2="160"/>
+            </g>
+            <line class="story-chart__baseline" x1="0" y1="210" x2="480" y2="210"/>
+
+            <path class="story-chart__area" d="M40,210 L40,170 Q140,150 240,110 Q340,70 440,40 L440,210 Z" fill="url(#storyChartFill)"/>
             <path class="story-chart__path" d="M40,170 Q140,150 240,110 Q340,70 440,40" pathLength="1" fill="none"/>
             <circle class="story-chart__point" cx="40" cy="170" r="5"/>
             <circle class="story-chart__point" cx="120" cy="151" r="5"/>

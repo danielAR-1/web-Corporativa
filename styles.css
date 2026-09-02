@@ -1009,12 +1009,37 @@ img {
   display: block;
 }
 
+/* Cuadrícula y eje base: sutiles a propósito, solo para que se lea como
+   una gráfica real y no una curva suelta flotando en el aire. */
+.story-chart__grid-line {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.story-chart__baseline {
+  stroke: var(--border);
+  stroke-width: 1.5;
+}
+
+/* Relleno de área bajo la curva, con el mismo degradado de "profundidad"
+   que ya usa el resto del sitio -- aparece con la curva, no antes. */
+.story-chart__area {
+  opacity: 0;
+  transition: opacity 1s var(--ease-decel) 0.4s;
+}
+
+.story-chart.is-visible .story-chart__area {
+  opacity: 1;
+}
+
 .story-chart__path {
   stroke: var(--accent);
   stroke-width: 3;
   stroke-linecap: round;
+  stroke-linejoin: round;
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
+  filter: drop-shadow(0 0 6px rgba(255, 107, 26, 0.45));
   transition: stroke-dashoffset 2s var(--ease-decel);
 }
 
@@ -1043,6 +1068,7 @@ img {
   opacity: 1;
   fill: var(--accent);
   transform: scale(1.35);
+  filter: drop-shadow(0 0 5px rgba(255, 107, 26, 0.6));
 }
 
 .story-milestones {
@@ -1259,7 +1285,8 @@ img {
   }
 
   .story-chart__path,
-  .story-chart__point {
+  .story-chart__point,
+  .story-chart__area {
     transition: none !important;
   }
 }

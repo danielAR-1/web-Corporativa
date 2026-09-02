@@ -429,8 +429,8 @@ document.addEventListener('DOMContentLoaded', function () {
         x: Math.random() * anchoCss,
         y: Math.random() * altoCss,
         radio: 0.5 + Math.random(), // 0.5-1.5px
-        vx: (Math.random() - 0.5) * 0.1, // muy lenta: "flotar", no desplazarse
-        vy: (Math.random() - 0.5) * 0.1,
+        vx: (Math.random() - 0.5) * 0.6, // lenta pero con movimiento perceptible -- "flotar", no desplazarse
+        vy: (Math.random() - 0.5) * 0.6,
         opacidad: 0.2 + Math.random() * 0.4, // 0.2-0.6
         color: esNaranja ? NARANJA : BLANCO
       };
