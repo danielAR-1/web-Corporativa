@@ -3,6 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Bootstrap mínimo e inline, antes que nada más: marca <html> como
+       capaz de JS (así el CSS solo oculta .reveal cuando sabe que algo va
+       a revelarlo) y arma una red de seguridad -- si a los 3s script.js no
+       ha arrancado el sistema de reveal (falla de red, error, etc.), fuerza
+       todo a su estado final para que el contenido nunca quede invisible.
+       Ver "reveal-ready" en inicializarRevealGenerico (script.js). -->
+  <script>
+    document.documentElement.classList.add('js');
+    window.setTimeout(function () {
+      if (!document.documentElement.classList.contains('reveal-ready')) {
+        document.documentElement.classList.add('reveal-fallback');
+      }
+    }, 3000);
+  </script>
   <title>PeluqueriaAPP Studio — Automatización para peluquerías y barberías</title>
   <meta name="description" content="Quitamos de en medio la gestión manual de citas de tu peluquería o barbería: reservas online, recordatorios automáticos y menos llamadas interrumpiendo el trabajo. Prueba la demo gratis.">
 
@@ -27,6 +41,10 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+
+  <noscript>
+    <style>.reveal { opacity: 1 !important; transform: none !important; }</style>
+  </noscript>
 
   <!-- Fondo de partículas global, fijo detrás de toda la página (ver
        inicializarParticulasFondo en script.js y .particles-canvas en
@@ -78,27 +96,27 @@
     <!-- QUÉ HACEMOS -->
     <section id="servicios" class="section">
       <div class="container">
-        <p class="eyebrow">Lo que hacemos</p>
-        <h2 class="section__title">Problemas concretos, soluciones simples</h2>
-        <p class="section__lead">Nada de jerga técnica: resolvemos problemas muy concretos del día a día de un salón.</p>
+        <p class="eyebrow reveal">Lo que hacemos</p>
+        <h2 class="section__title reveal">Problemas concretos, soluciones simples</h2>
+        <p class="section__lead reveal">Nada de jerga técnica: resolvemos problemas muy concretos del día a día de un salón.</p>
 
         <div class="cards-grid">
-          <article class="card">
+          <article class="card reveal">
             <h3>Se acabó el papel y el Excel</h3>
             <p>Cambiamos la libreta de citas o la hoja de cálculo por una app sencilla donde ves toda tu agenda de un vistazo, desde el móvil o el ordenador.</p>
           </article>
 
-          <article class="card">
+          <article class="card reveal">
             <h3>Menos llamadas, más cortes</h3>
             <p>Tus clientes reservan solos desde el móvil, sin que tengas que dejar la tijera para contestar el teléfono cada dos por tres.</p>
           </article>
 
-          <article class="card">
+          <article class="card reveal">
             <h3>Recordatorios automáticos</h3>
             <p>La app avisa a tus clientes antes de la cita para que no se les olvide venir, reduciendo los huecos vacíos en tu agenda.</p>
           </article>
 
-          <article class="card">
+          <article class="card reveal">
             <h3>Presencia digital sin complicarte</h3>
             <p>Tu negocio con un enlace de reservas propio que puedes compartir en Instagram, Google o WhatsApp, sin necesidad de saber de webs.</p>
           </article>
@@ -109,29 +127,29 @@
     <!-- DEMO EN VIVO -->
     <section id="demo" class="section section--alt">
       <div class="container">
-        <p class="eyebrow">Pruébalo tú mismo</p>
-        <h2 class="section__title">Nuestra demo en <span class="highlight">vivo</span></h2>
-        <p class="section__lead">En vez de prometerte casos de éxito que todavía no tenemos, te enseñamos el producto real: PeluqueriaAPP. Esto es lo que vive tu cliente al reservar.</p>
+        <p class="eyebrow reveal">Pruébalo tú mismo</p>
+        <h2 class="section__title reveal">Nuestra demo en <span class="highlight">vivo</span></h2>
+        <p class="section__lead reveal">En vez de prometerte casos de éxito que todavía no tenemos, te enseñamos el producto real: PeluqueriaAPP. Esto es lo que vive tu cliente al reservar.</p>
 
         <div class="demo-steps">
-          <div class="demo-step">
+          <div class="demo-step reveal">
             <span class="demo-step__index" aria-hidden="true">01</span>
             <h3>Elige el servicio</h3>
             <p>Corte, barba, color... tu cliente ve el catálogo real de tu salón y elige lo que quiere reservar, sin llamar.</p>
           </div>
-          <div class="demo-step">
+          <div class="demo-step reveal">
             <span class="demo-step__index" aria-hidden="true">02</span>
             <h3>Elige día y hora</h3>
             <p>Ve los huecos libres de verdad, no una promesa por teléfono, y reserva en el momento que le venga bien a él.</p>
           </div>
-          <div class="demo-step">
+          <div class="demo-step reveal">
             <span class="demo-step__index" aria-hidden="true">03</span>
             <h3>Confirma y listo</h3>
             <p>Recibe la confirmación al momento y un recordatorio automático antes de la cita, sin que tú muevas un dedo.</p>
           </div>
         </div>
 
-        <div class="demo-cta">
+        <div class="demo-cta reveal">
           <p>La mejor forma de verlo es probándolo tú mismo, sin registros ni compromisos.</p>
           <a href="https://reservas.3lluzl.easypanel.host/" class="btn btn--primary btn--lg" target="_blank" rel="noopener">Probar la demo funcionando</a>
         </div>
@@ -141,12 +159,12 @@
     <!-- PARA EL DUEÑO -->
     <section id="panel-admin" class="section">
       <div class="container">
-        <p class="eyebrow">Para el dueño</p>
-        <h2 class="section__title">Tu negocio, controlado desde <span class="highlight">un solo sitio</span></h2>
-        <p class="section__lead">Esto es lo que ves tú, como dueño, al entrar en el panel de administración de PeluqueriaAPP. Cada ventana es una pantalla real de la app.</p>
+        <p class="eyebrow reveal">Para el dueño</p>
+        <h2 class="section__title reveal">Tu negocio, controlado desde <span class="highlight">un solo sitio</span></h2>
+        <p class="section__lead reveal">Esto es lo que ves tú, como dueño, al entrar en el panel de administración de PeluqueriaAPP. Cada ventana es una pantalla real de la app.</p>
 
         <div class="admin-grid">
-          <article class="admin-card">
+          <article class="admin-card reveal">
             <div class="admin-card__bar">
               <span class="admin-card__dot"></span><span class="admin-card__dot"></span><span class="admin-card__dot"></span>
               <span class="admin-card__bar-title">Inicio</span>
@@ -166,7 +184,7 @@
             </div>
           </article>
 
-          <article class="admin-card">
+          <article class="admin-card reveal">
             <div class="admin-card__bar">
               <span class="admin-card__dot"></span><span class="admin-card__dot"></span><span class="admin-card__dot"></span>
               <span class="admin-card__bar-title">Citas de hoy</span>
@@ -186,7 +204,7 @@
             </div>
           </article>
 
-          <article class="admin-card">
+          <article class="admin-card reveal">
             <div class="admin-card__bar">
               <span class="admin-card__dot"></span><span class="admin-card__dot"></span><span class="admin-card__dot"></span>
               <span class="admin-card__bar-title">Clientes</span>
@@ -206,7 +224,7 @@
             </div>
           </article>
 
-          <article class="admin-card">
+          <article class="admin-card reveal">
             <div class="admin-card__bar">
               <span class="admin-card__dot"></span><span class="admin-card__dot"></span><span class="admin-card__dot"></span>
               <span class="admin-card__bar-title">Estadísticas</span>
@@ -226,7 +244,7 @@
             </div>
           </article>
 
-          <article class="admin-card">
+          <article class="admin-card reveal">
             <div class="admin-card__bar">
               <span class="admin-card__dot"></span><span class="admin-card__dot"></span><span class="admin-card__dot"></span>
               <span class="admin-card__bar-title">Ocupación</span>
@@ -246,7 +264,7 @@
             </div>
           </article>
 
-          <article class="admin-card">
+          <article class="admin-card reveal">
             <div class="admin-card__bar">
               <span class="admin-card__dot"></span><span class="admin-card__dot"></span><span class="admin-card__dot"></span>
               <span class="admin-card__bar-title">Ingresos</span>
@@ -266,7 +284,7 @@
             </div>
           </article>
 
-          <article class="admin-card admin-card--closing">
+          <article class="admin-card admin-card--closing reveal">
             <div class="admin-card__bar">
               <span class="admin-card__dot"></span><span class="admin-card__dot"></span><span class="admin-card__dot"></span>
               <span class="admin-card__bar-title">Ajustes</span>
@@ -391,11 +409,11 @@
     <!-- FAQ -->
     <section id="faq" class="section section--alt">
       <div class="container container--narrow">
-        <p class="eyebrow">Preguntas frecuentes</p>
-        <h2 class="section__title">Lo que sueles preguntarnos</h2>
+        <p class="eyebrow reveal">Preguntas frecuentes</p>
+        <h2 class="section__title reveal">Lo que sueles preguntarnos</h2>
 
         <div class="accordion">
-          <div class="accordion__item">
+          <div class="accordion__item reveal">
             <button class="accordion__trigger" aria-expanded="false">
               <span>¿Cuánto tarda en implementarse?</span>
               <span class="accordion__icon" aria-hidden="true"></span>
@@ -405,7 +423,7 @@
             </div>
           </div>
 
-          <div class="accordion__item">
+          <div class="accordion__item reveal">
             <button class="accordion__trigger" aria-expanded="false">
               <span>¿Necesito saber de tecnología?</span>
               <span class="accordion__icon" aria-hidden="true"></span>
@@ -415,7 +433,7 @@
             </div>
           </div>
 
-          <div class="accordion__item">
+          <div class="accordion__item reveal">
             <button class="accordion__trigger" aria-expanded="false">
               <span>¿Qué pasa si no me gusta después de probarlo?</span>
               <span class="accordion__icon" aria-hidden="true"></span>
@@ -425,7 +443,7 @@
             </div>
           </div>
 
-          <div class="accordion__item">
+          <div class="accordion__item reveal">
             <button class="accordion__trigger" aria-expanded="false">
               <span>¿Cómo os pago?</span>
               <span class="accordion__icon" aria-hidden="true"></span>
@@ -441,10 +459,10 @@
     <!-- CTA FINAL -->
     <section class="section cta-final">
       <div class="container">
-        <p class="eyebrow">¿Hablamos?</p>
-        <h2>Cuéntanos cómo llevas hoy tus citas</h2>
-        <p>Y vemos juntos si PeluqueriaAPP tiene sentido para tu salón.</p>
-        <div class="cta-final__actions">
+        <p class="eyebrow reveal">¿Hablamos?</p>
+        <h2 class="reveal">Cuéntanos cómo llevas hoy tus citas</h2>
+        <p class="reveal">Y vemos juntos si PeluqueriaAPP tiene sentido para tu salón.</p>
+        <div class="cta-final__actions reveal">
           <a href="https://wa.me/34601238874?text=Hola%2C%20me%20gustar%C3%ADa%20saber%20m%C3%A1s%20sobre%20PeluqueriaAPP%20Studio"
              class="btn btn--primary btn--lg" target="_blank" rel="noopener">Escríbenos por WhatsApp</a>
           <!--

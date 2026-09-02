@@ -1277,6 +1277,39 @@ img {
 }
 
 /* ==========================================================================
+   Reveal al hacer scroll — genérico y reutilizable (ver
+   inicializarRevealGenerico en script.js). Un solo IntersectionObserver
+   para toda la página añade "is-visible" la primera vez que cada elemento
+   entra en el viewport y deja de observarlo, así que nunca se re-anima.
+
+   Oculto SOLO cuando <html> lleva la clase "js" (añadida por un script
+   inline en el <head>, antes que nada más): si JS está desactivado, este
+   selector no aplica y el contenido se ve directamente en su estado final,
+   sin depender de que llegue a cargar script.js ni de un <noscript>
+   aparte (aunque hay uno también, como red adicional). Ver también
+   "reveal-fallback" más abajo, por si script.js falla a mitad de carga.
+   ========================================================================== */
+html.js .reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.65s var(--ease-decel), transform 0.65s var(--ease-decel);
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Red de seguridad: si script.js no llega a marcar "reveal-ready" en los
+   primeros 3s (ver el script inline del <head>), fuerza todo a su estado
+   final -- mejor sin animación que contenido invisible para siempre. */
+html.reveal-fallback .reveal {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+/* ==========================================================================
    Movimiento reducido — solo lo ambiental/automático (entrada del hero,
    gradiente en bucle, dibujado del gráfico de hitos, cursor magnético).
    Los hovers de tarjetas/botones/FAQ y el header al hacer scroll se dejan:
@@ -1295,6 +1328,14 @@ img {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
+  }
+
+  /* El reveal al hacer scroll: en cuanto script.js detecta reduced-motion
+     no espera al scroll, marca todo como visible de una vez (ver
+     inicializarRevealGenerico) -- esto solo asegura que, aun así, no haya
+     transición de por medio. */
+  .reveal {
+    transition: none !important;
   }
 
   .hero::before {

@@ -123,8 +123,13 @@ document.addEventListener('DOMContentLoaded', function () {
   // Lightbox para ampliar las capturas del panel admin con zoom in.
   inicializarLightboxPanelAdmin();
 
-  // Fondo de partículas flotando en "Somos reales".
+  // Fondo de partículas global, fijo detrás de toda la página.
   inicializarParticulasFondo();
+
+  // Reveal genérico al hacer scroll para el resto de bloques de contenido
+  // (títulos, párrafos, tarjetas). El hero, el gráfico de hitos y las
+  // partículas ya tienen su propia animación y no llevan esta clase.
+  inicializarRevealGenerico();
 
   function prefiereMovimientoReducido() {
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -573,6 +578,58 @@ document.addEventListener('DOMContentLoaded', function () {
         ajustarTamano();
         dibujarFrame();
       }, 200);
+    });
+  }
+
+  // Reveal genérico al hacer scroll: un único IntersectionObserver para
+  // toda la página marca "reveal-ready" en <html> nada más arrancar (así
+  // el fallback del <head> sabe que esto ha llegado a ejecutarse) y añade
+  // "is-visible" a cada .reveal la primera vez que entra en el viewport,
+  // dejando de observarlo al momento -- no vuelve a animarse.
+  function inicializarRevealGenerico() {
+    document.documentElement.classList.add('reveal-ready');
+
+    var elementos = Array.prototype.slice.call(document.querySelectorAll('.reveal'));
+    if (elementos.length === 0) return;
+
+    if (prefiereMovimientoReducido()) {
+      // "Estado final directamente, sin transición" -- no tiene sentido
+      // esperar a que cada uno entre en el viewport.
+      elementos.forEach(function (el) {
+        el.classList.add('is-visible');
+      });
+      return;
+    }
+
+    if (!('IntersectionObserver' in window)) {
+      elementos.forEach(function (el) {
+        el.classList.add('is-visible');
+      });
+      return;
+    }
+
+    var PASO_STAGGER_MS = 90;
+
+    var observador = new IntersectionObserver(function (entries) {
+      // Las entradas que llegan juntas en esta misma pasada del observer
+      // (ej. varias tarjetas de la misma fila entrando a la vez) se
+      // escalonan entre sí; un lote disparado en otro momento de scroll
+      // siempre vuelve a empezar en 0ms, el retraso no se va acumulando
+      // fila tras fila.
+      var indice = 0;
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+
+        var el = entry.target;
+        el.style.transitionDelay = (indice * PASO_STAGGER_MS) + 'ms';
+        el.classList.add('is-visible');
+        observador.unobserve(el);
+        indice += 1;
+      });
+    }, { threshold: 0.12 });
+
+    elementos.forEach(function (el) {
+      observador.observe(el);
     });
   }
 
