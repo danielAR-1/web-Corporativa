@@ -120,6 +120,9 @@ document.addEventListener('DOMContentLoaded', function () {
   // Cursor magnético en los CTAs principales.
   inicializarBotonesMagneticos();
 
+  // Spotlight bajo el cursor en las tarjetas de "Lo que hacemos".
+  inicializarSpotlightTarjetas();
+
   // Lightbox para ampliar las capturas del panel admin con zoom in.
   inicializarLightboxPanelAdmin();
 
@@ -630,6 +633,33 @@ document.addEventListener('DOMContentLoaded', function () {
 
     elementos.forEach(function (el) {
       observador.observe(el);
+    });
+  }
+
+  // Spotlight en las tarjetas de #servicios: un halo naranja que sigue al
+  // cursor dentro de la tarjeta. Solo escribe dos custom properties por
+  // evento (--mx/--my, en px relativos a la tarjeta) y el gradiente vive
+  // entero en CSS, así que el navegador lo resuelve en compositing y no
+  // hace falta rAF -- a diferencia de los botones magnéticos, aquí no hay
+  // interpolación propia que mantener entre frames.
+  //
+  // Sin cursor (táctil) o con movimiento reducido no arranca: el CSS deja
+  // el halo centrado y la tarjeta sigue teniendo su resalte al hover.
+  function inicializarSpotlightTarjetas() {
+    if (!window.matchMedia('(hover: hover)').matches) return;
+    if (prefiereMovimientoReducido()) return;
+
+    var tarjetas = Array.prototype.slice.call(
+      document.querySelectorAll('#servicios .card')
+    );
+    if (tarjetas.length === 0) return;
+
+    tarjetas.forEach(function (tarjeta) {
+      tarjeta.addEventListener('mousemove', function (e) {
+        var rect = tarjeta.getBoundingClientRect();
+        tarjeta.style.setProperty('--mx', (e.clientX - rect.left) + 'px');
+        tarjeta.style.setProperty('--my', (e.clientY - rect.top) + 'px');
+      });
     });
   }
 

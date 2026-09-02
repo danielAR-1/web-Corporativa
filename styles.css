@@ -547,6 +547,8 @@ img {
   padding: 28px 24px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), var(--shadow-sm);
   transition: transform 0.22s var(--ease-decel), box-shadow 0.22s var(--ease-decel), border-color 0.22s var(--ease-decel);
+  /* Ancla para el ::before del spotlight, más abajo. */
+  position: relative;
   /* No son campos de texto: al pasar el cursor por encima no debe verse el
      cursor de "seleccionar texto" ni poder arrastrar para copiar. */
   cursor: default;
@@ -557,6 +559,38 @@ img {
   border-color: var(--accent);
   transform: translateY(-4px);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 12px 32px rgba(255, 107, 26, 0.15), 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* Spotlight: halo del naranja de marca bajo el cursor, dentro de la tarjeta.
+   script.js escribe --mx/--my en cada movimiento del ratón (ver
+   inicializarSpotlightTarjetas). Si no llega a arrancar -- movimiento
+   reducido, o dispositivo sin cursor -- los valores por defecto dejan el
+   halo centrado, que sigue funcionando como resalte al hover. */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  /* 260px / 0.24 calibrados en el navegador: por debajo de ~0.20 el halo se
+     ahoga bajo el borde naranja del :hover y no se llega a ver. */
+  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%),
+              rgba(255, 107, 26, 0.24), transparent 68%);
+  opacity: 0;
+  transition: opacity 0.25s var(--ease-decel);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.card:hover::before {
+  opacity: 1;
+}
+
+/* El ::before está posicionado, así que pintaría por encima del contenido en
+   flujo normal: subimos el contenido a su propia capa para que el halo quede
+   siempre por detrás del texto. */
+.card > * {
+  position: relative;
+  z-index: 1;
 }
 
 .card h3 {
