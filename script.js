@@ -120,6 +120,9 @@ document.addEventListener('DOMContentLoaded', function () {
   // Cursor magnético en los CTAs principales.
   inicializarBotonesMagneticos();
 
+  // Lightbox para ampliar las capturas del panel admin con zoom in.
+  inicializarLightboxPanelAdmin();
+
   function prefiereMovimientoReducido() {
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
@@ -296,6 +299,93 @@ document.addEventListener('DOMContentLoaded', function () {
       mouseY = null;
       solicitarFrame();
     });
+  }
+
+  // Lightbox de la sección "Para el dueño": al pulsar una captura, se
+  // reutiliza el mismo diálogo para las 7, poniendo su imagen y un pie
+  // formado por el nombre de pantalla (barra de la ventana) + el titular de
+  // la tarjeta -- así no hace falta duplicar ese texto en el HTML.
+  function inicializarLightboxPanelAdmin() {
+    var lightbox = document.getElementById('lightbox');
+    var triggers = Array.prototype.slice.call(document.querySelectorAll('.admin-card__zoom'));
+    if (!lightbox || triggers.length === 0) return;
+
+    var dialog = lightbox.querySelector('.lightbox__dialog');
+    var imgEl = lightbox.querySelector('.lightbox__img');
+    var captionEl = lightbox.querySelector('.lightbox__caption');
+    var DURACION_CIERRE_MS = 280; // debe coincidir con la transition de .lightbox__dialog en styles.css
+
+    var ultimoFoco = null;
+    var cierreTimeout = null;
+
+    function abrir(trigger) {
+      var img = trigger.querySelector('img');
+      var card = trigger.closest('.admin-card');
+      if (!img || !card) return;
+
+      clearTimeout(cierreTimeout);
+      ultimoFoco = trigger;
+
+      var pantalla = card.querySelector('.admin-card__bar-title');
+      var titular = card.querySelector('.admin-card__text h3');
+      imgEl.src = img.currentSrc || img.src;
+      imgEl.alt = img.alt;
+      captionEl.textContent = (pantalla ? pantalla.textContent + ' — ' : '') + (titular ? titular.textContent : '');
+
+      lightbox.hidden = false;
+      document.body.style.overflow = 'hidden';
+
+      // Quitar "hidden" y añadir la clase que dispara la transición en dos
+      // frames distintos -- si no, el navegador puede colapsar ambos
+      // cambios y la animación de entrada no se llega a ver.
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          lightbox.classList.add('is-open');
+        });
+      });
+
+      document.addEventListener('keydown', alPulsarTecla);
+    }
+
+    function cerrar() {
+      if (lightbox.hidden) return;
+
+      lightbox.classList.remove('is-open');
+      document.removeEventListener('keydown', alPulsarTecla);
+      document.body.style.overflow = '';
+
+      cierreTimeout = setTimeout(function () {
+        lightbox.hidden = true;
+        imgEl.src = '';
+      }, DURACION_CIERRE_MS);
+
+      if (ultimoFoco) {
+        ultimoFoco.focus();
+      }
+    }
+
+    function alPulsarTecla(e) {
+      if (e.key === 'Escape') cerrar();
+    }
+
+    triggers.forEach(function (trigger) {
+      trigger.addEventListener('click', function () {
+        abrir(trigger);
+      });
+    });
+
+    Array.prototype.slice.call(lightbox.querySelectorAll('[data-lightbox-close]')).forEach(function (el) {
+      el.addEventListener('click', cerrar);
+    });
+
+    // El clic ya cierra al llegar al backdrop porque el diálogo no lo cubre
+    // entero; esto es solo para no perder el cierre si el diálogo crece
+    // (imagen muy ancha) y tapa el backdrop bajo el cursor.
+    if (dialog) {
+      dialog.addEventListener('click', function (e) {
+        if (e.target === dialog) cerrar();
+      });
+    }
   }
 
 });
