@@ -406,11 +406,16 @@ document.addEventListener('DOMContentLoaded', function () {
     var NARANJA = '255, 107, 26'; // debe coincidir con --accent en styles.css
     var DPR = Math.min(window.devicePixelRatio || 1, 2); // cap: en móviles de DPR alto no merece la pena más resolución de la que se aprecia
 
+    var RADIO_REPULSION = 110; // px: a partir de aquí una partícula empieza a huir del cursor
+    var FUERZA_REPULSION = 2.4; // empuje máximo, justo al lado del cursor
+
     var particulas = [];
     var anchoCss = 0;
     var altoCss = 0;
     var rafId = null;
     var resizeTimeout = null;
+    var mouseX = null;
+    var mouseY = null;
 
     function numeroDeParticulasPara(ancho, alto) {
       // Densidad relativa al área visible, no un número fijo: antes se
@@ -430,10 +435,10 @@ document.addEventListener('DOMContentLoaded', function () {
       return {
         x: Math.random() * anchoCss,
         y: Math.random() * altoCss,
-        radio: 0.5 + Math.random(), // 0.5-1.5px
+        radio: 1 + Math.random() * 1.5, // 1-2.5px -- más grandes que antes, se ven mejor
         vx: (Math.random() - 0.5) * 0.6, // lenta pero con movimiento perceptible -- "flotar", no desplazarse
         vy: (Math.random() - 0.5) * 0.6,
-        opacidad: 0.2 + Math.random() * 0.4, // 0.2-0.6
+        opacidad: 0.4 + Math.random() * 0.45, // 0.4-0.85 -- más visibles que antes
         color: esNaranja ? NARANJA : BLANCO
       };
     }
@@ -478,6 +483,22 @@ document.addEventListener('DOMContentLoaded', function () {
       particulas.forEach(function (p) {
         p.x += p.vx;
         p.y += p.vy;
+
+        // Repulsión del cursor: cuanto más cerca, más fuerte el empuje --
+        // el "imán al revés". Se suma al flotar de base, no lo sustituye,
+        // así que la partícula vuelve a su deriva normal en cuanto escapa
+        // del radio.
+        if (mouseX !== null) {
+          var dx = p.x - mouseX;
+          var dy = p.y - mouseY;
+          var distancia = Math.sqrt(dx * dx + dy * dy);
+
+          if (distancia < RADIO_REPULSION && distancia > 0.01) {
+            var fuerza = (1 - distancia / RADIO_REPULSION) * FUERZA_REPULSION;
+            p.x += (dx / distancia) * fuerza;
+            p.y += (dy / distancia) * fuerza;
+          }
+        }
 
         // Wrap-around: reaparece por el lado opuesto, sin rebotar.
         if (p.x < -p.radio) p.x = anchoCss + p.radio;
@@ -527,6 +548,21 @@ document.addEventListener('DOMContentLoaded', function () {
           iniciarAnimacion();
         }
       });
+
+      // Repulsión del cursor: solo en dispositivos con puntero fino de
+      // verdad (mismo criterio que el cursor magnético de los botones) --
+      // en táctil no hay un "acercarse" al que huir.
+      if (window.matchMedia('(hover: hover)').matches) {
+        document.addEventListener('mousemove', function (e) {
+          mouseX = e.clientX;
+          mouseY = e.clientY;
+        }, { passive: true });
+
+        document.addEventListener('mouseleave', function () {
+          mouseX = null;
+          mouseY = null;
+        });
+      }
     }
 
     // Debounce: un resize real solo se procesa 200ms después del último
