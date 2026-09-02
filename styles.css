@@ -729,15 +729,15 @@ img {
   height: auto;
 }
 
-/* Pista visual de que la captura se puede ampliar: una lupa que aparece al
-   pasar el cursor o al enfocar con teclado. */
+/* Pista visual de que la captura se puede ampliar: solo el icono de lupa,
+   sin ninguna caja ni velo detrás -- una sombra suave es lo que lo separa
+   de la captura, no un fondo de color que rompa la estética. */
 .admin-card__zoom-hint {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(13, 19, 33, 0.45);
   color: var(--text);
   opacity: 0;
   transition: opacity 0.2s var(--ease-decel);
@@ -746,7 +746,11 @@ img {
 
 .admin-card__zoom:hover .admin-card__zoom-hint,
 .admin-card__zoom:focus-visible .admin-card__zoom-hint {
-  opacity: 1;
+  opacity: 0.75;
+}
+
+.admin-card__zoom-hint svg {
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.7));
 }
 
 /* Cuerpo tipo "listado editorial": un índice grande y traslúcido conecta
