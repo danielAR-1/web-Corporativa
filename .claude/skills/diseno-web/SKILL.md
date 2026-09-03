@@ -118,6 +118,40 @@ Luego con las herramientas de Chrome (`mcp__claude-in-chrome__*`):
 Screenshot valida composición; GIF valida movimiento. Para un cambio de animación,
 el GIF no es opcional.
 
+### Dos trampas del entorno que imitan bugs reales
+
+**La pestaña de automatización corre en `visibilityState: "hidden"`.** Chrome no
+entrega callbacks de `IntersectionObserver` a pestañas en segundo plano, así que
+**ningún `.reveal` recibe `is-visible`**: los screenshots salen en blanco o a medias
+y parece exactamente la regresión de contenido invisible de `ee3cdd6`.
+
+Antes de dar por roto el reveal, **mide**:
+
+```js
+document.visibilityState                              // "hidden" -> es esto
+document.querySelectorAll('.reveal.is-visible').length // 0 de N
+```
+
+Y confirma con un observer nuevo sobre los mismos elementos: si tampoco dispara
+**ni un solo callback**, no es el código — un `IntersectionObserver` sano siempre
+entrega una primera notificación. Para capturar, usa la red de seguridad de la
+propia web:
+
+```js
+document.documentElement.classList.add('reveal-fallback');
+```
+
+**Chrome cachea `styles.css` con fuerza**, incluso tras `location.reload(true)`.
+Verificarás estilos viejos sin enterarte. Antes de medir nada de CSS:
+
+```js
+var l = document.querySelector('link[href*="styles.css"]');
+l.href = 'styles.css?v=' + Date.now();
+```
+
+Comprueba siempre con `getComputedStyle` que la propiedad que acabas de escribir
+tiene el valor nuevo. Si sale el viejo, es caché, no tu regla.
+
 ## 6. Catálogo de efectos
 
 Recetas concretas de efectos reactivos que encajan con este stack (tilt 3D, spotlight
