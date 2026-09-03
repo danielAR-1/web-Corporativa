@@ -514,6 +514,17 @@ img {
   margin-bottom: 40px;
 }
 
+/* Cierre de sección: nota corta debajo de una rejilla, no encima. Lleva un
+   filete del color de acento a la izquierda para que se lea como apunte y no
+   se confunda con el lead de la sección siguiente. */
+.section__outro {
+  max-width: 620px;
+  margin: 40px 0 0;
+  padding-left: 16px;
+  border-left: 2px solid var(--accent);
+  font-size: 1.02rem;
+}
+
 /* ==========================================================================
    Cards
    ========================================================================== */
@@ -531,7 +542,9 @@ img {
 
 @media (min-width: 1024px) {
   .cards-grid {
-    grid-template-columns: repeat(4, 1fr);
+    /* 3 columnas, no 4: con seis tarjetas salen dos filas completas y no
+       una última fila coja de dos. */
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
